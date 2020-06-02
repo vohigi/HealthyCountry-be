@@ -11,6 +11,7 @@ namespace HealthyCountry.Services
     {
         ServiceResponse<TokenDataModel, ValidationResult> Authenticate(string username, string password);
         IEnumerable<User> GetAll();
+        Task<(int count, IEnumerable<User>)> GetDoctors(string search, int page, int count);
         User GetById(string userId);
         Task<ServiceResponse<User, ValidationResult>> CreateUser(User userRequest);
     }

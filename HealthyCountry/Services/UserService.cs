@@ -30,7 +30,7 @@ namespace HealthyCountry.Services
         public ServiceResponse<TokenDataModel, ValidationResult> Authenticate(string email, string password)
         {
             var validationResult = new ValidationResult();
-            var user = _dbContext.Users.SingleOrDefault(x => x.Email == email);
+            var user = _dbContext.Users.Include(x=>x.Organization).SingleOrDefault(x => x.Email == email);
 
             // return null if user not found
             if (user == null)
@@ -93,6 +93,19 @@ namespace HealthyCountry.Services
         public IEnumerable<User> GetAll()
         {
             return _dbContext.Users.Include(x => x.Organization).AsNoTracking().Where(x => x.IsActive).AsEnumerable();
+        }
+
+        public async Task<(int count, IEnumerable<User>)> GetDoctors(string search, int page, int pageSize)
+        {
+            var request = string.IsNullOrEmpty(search)
+                ? _dbContext.Users.Include(d => d.Organization).Where(d => d.Role == UserRoles.DOCTOR || d.Role == UserRoles.ADMIN)
+                : _dbContext.Users.Include(d => d.Organization).Where(d =>
+                    EF.Functions.Like(d.LastName, "%" + search + "%") && (d.Role == UserRoles.DOCTOR|| d.Role == UserRoles.ADMIN));
+
+            var count = await request.CountAsync();
+            var items = await request.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (count, items);
+
         }
 
         public User GetById(string userId)

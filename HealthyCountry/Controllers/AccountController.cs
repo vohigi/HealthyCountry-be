@@ -63,21 +63,23 @@ namespace HealthyCountry.Controllers
             return Ok(createUserServiceResponse.Result);
         }
 
-        [Authorize(Roles = "ADMIN")]
-        [HttpGet]
-        public IActionResult GetAll()
+        //[Authorize(Roles = "ADMIN")]
+        [HttpGet("doctors")]
+        public async Task<IActionResult> GetDoctors([FromQuery] string name, [FromQuery] int page = 1, [FromQuery] int limit = 30)
         {
-            var users =  _userService.GetAll();
-            return Ok(users);
+            var (count, users) = await _userService.GetDoctors(name, page, limit);
+            var response = new ResponseData(users);
+            response.AddPaginationData(count, page, limit);
+            return Ok(response);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(string id)
+        public IActionResult GetById([FromRoute] string id)
         {
             // only allow admins to access other user records
-            var currentUserId = User.Identity.Name;
-            if (id != currentUserId && !User.IsInRole(UserRoles.ADMIN.ToString()))
-                return Forbid();
+            // var currentUserId = User.Identity.Name;
+            // if (id != currentUserId && !User.IsInRole(UserRoles.ADMIN.ToString()))
+            //     return Forbid();
 
             var user =  _userService.GetById(id);
 

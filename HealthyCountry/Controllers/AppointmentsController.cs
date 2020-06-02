@@ -27,22 +27,19 @@ namespace HealthyCountry.Controllers
             _mapper = mapper;
             _dbContext = dbContext;
         }
-        [HttpGet]
-        public async Task<IActionResult> GetAsync()
+        [HttpGet("{doctorId}")]
+        public async Task<IActionResult> GetAsync([FromRoute] string doctorId)
         {
-            var userID = User.Identity.Name;
             var user = _dbContext.Users.Include(x => x.Organization).AsNoTracking()
-                .FirstOrDefault(x => x.UserId == userID);
-            // AppointmentsViewModel model = new AppointmentsViewModel();
-            // model.User = user;
+                .FirstOrDefault(x => x.UserId == doctorId);
             DateTime dt = DateTime.Now;
             DateTime dateDefault = new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0);
             DateTime[] dates = new DateTime[]
             {
-                new DateTime(dt.Year, dt.Month, dt.Day + 1, 9, 0, 0),
-                new DateTime(dt.Year, dt.Month, dt.Day + 1, 10, 0, 0),
-                new DateTime(dt.Year, dt.Month, dt.Day + 1, 11, 0, 0),
-                new DateTime(dt.Year, dt.Month, dt.Day + 1, 12, 0, 0)
+                dateDefault.AddDays(1).AddHours(9),
+                dateDefault.AddDays(1).AddHours(10),
+                dateDefault.AddDays(1).AddHours(11),
+                dateDefault.AddDays(1).AddHours(12),
             };
 
             var appointments = _dbContext.Appointments.Include(x => x.Employee)
@@ -54,14 +51,14 @@ namespace HealthyCountry.Controllers
             {
                 List<Appointment> appList = new List<Appointment>()
                 {
-                    new Appointment(userID, dates[0], AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[1], AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[2], AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[3], AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[0].AddDays(1), AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[1].AddDays(1), AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[2].AddDays(1), AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[3].AddDays(1), AppointmentStatuses.FREE)
+                    new Appointment(doctorId, dates[0], AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[1], AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[2], AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[3], AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[0].AddDays(1), AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[1].AddDays(1), AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[2].AddDays(1), AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[3].AddDays(1), AppointmentStatuses.FREE)
                 };
                 await _dbContext.Appointments.AddRangeAsync(appList);
                 await _dbContext.SaveChangesAsync();
@@ -73,10 +70,10 @@ namespace HealthyCountry.Controllers
                 {
                     List<Appointment> appList = new List<Appointment>()
                     {
-                        new Appointment(userID, dates[0].AddDays(1), AppointmentStatuses.FREE),
-                        new Appointment(userID, dates[1].AddDays(1), AppointmentStatuses.FREE),
-                        new Appointment(userID, dates[2].AddDays(1), AppointmentStatuses.FREE),
-                        new Appointment(userID, dates[3].AddDays(1), AppointmentStatuses.FREE)
+                        new Appointment(doctorId, dates[0].AddDays(1), AppointmentStatuses.FREE),
+                        new Appointment(doctorId, dates[1].AddDays(1), AppointmentStatuses.FREE),
+                        new Appointment(doctorId, dates[2].AddDays(1), AppointmentStatuses.FREE),
+                        new Appointment(doctorId, dates[3].AddDays(1), AppointmentStatuses.FREE)
                     };
                     await _dbContext.Appointments.AddRangeAsync(appList);
                     await _dbContext.SaveChangesAsync();
@@ -86,23 +83,22 @@ namespace HealthyCountry.Controllers
             {
                 List<Appointment> appList = new List<Appointment>()
                 {
-                    new Appointment(userID, dates[0], AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[1], AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[2], AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[3], AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[0].AddDays(1), AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[1].AddDays(1), AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[2].AddDays(1), AppointmentStatuses.FREE),
-                    new Appointment(userID, dates[3].AddDays(1), AppointmentStatuses.FREE)
+                    new Appointment(doctorId, dates[0], AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[1], AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[2], AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[3], AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[0].AddDays(1), AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[1].AddDays(1), AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[2].AddDays(1), AppointmentStatuses.FREE),
+                    new Appointment(doctorId, dates[3].AddDays(1), AppointmentStatuses.FREE)
                 };
                 await _dbContext.Appointments.AddRangeAsync(appList);
                 await _dbContext.SaveChangesAsync();
             }
 
-            var appointmentsCurrent = _dbContext.Appointments.AsNoTracking().Where(x => x.EmployeeId == userID && x.DateTime.Date >= dt.Date)
+            var appointmentsCurrent = _dbContext.Appointments.AsNoTracking().Where(x => x.EmployeeId == doctorId && x.DateTime.Date >= dt.Date)
                 .OrderBy(x => x.DateTime);
-            //model.Appointment = 
-                return Ok(appointmentsCurrent.ToList());
+            return Ok(appointmentsCurrent.ToList());
         }
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody]Appointment model)
