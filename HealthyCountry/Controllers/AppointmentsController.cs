@@ -100,8 +100,21 @@ namespace HealthyCountry.Controllers
                 await _dbContext.SaveChangesAsync();
             }
 
+            var canceled = appointments.Where(x => x.Status == AppointmentStatuses.CANCELED).ToList();
+            foreach (var appointment in canceled)
+            {
+                if (!_dbContext.Appointments.Any(x => x.EmployeeId == appointment.EmployeeId && x.DateTime == appointment.DateTime &&
+                                                     x.Status != AppointmentStatuses.CANCELED))
+                {
+                    await _dbContext.Appointments.AddAsync(new Appointment(appointment.EmployeeId, appointment.DateTime,
+                        AppointmentStatuses.FREE));
+                }
+            }
+            
+            await _dbContext.SaveChangesAsync();
+
             var appointmentsCurrent = _dbContext.Appointments.AsNoTracking()
-                .Where(x => x.EmployeeId == doctorId && x.DateTime.Date >= dt.Date)
+                .Where(x => x.EmployeeId == doctorId && x.DateTime.Date >= dt.Date && x.Status!=AppointmentStatuses.CANCELED)
                 .OrderBy(x => x.DateTime).ToList();
             return Ok(appointmentsCurrent);
         }
@@ -118,11 +131,26 @@ namespace HealthyCountry.Controllers
                 .OrderByDescending(x => x.DateTime).ToList();
             return Ok(appointments);
         }
+        [HttpGet("doctor/{doctorId}")]
+        public IActionResult GetByDoctorAsync([FromRoute] string doctorId)
+        {
+            var user = _userService.GetById(doctorId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var appointments = _dbContext.Appointments.Include(x => x.Employee)
+                .Where(x => x.EmployeeId == user.UserId && x.Status != AppointmentStatuses.FREE)
+                .OrderByDescending(x => x.DateTime).ToList();
+            return Ok(appointments);
+        }
 
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody] Appointment model)
         {
             model.AppointmentId = id;
+            model.Employee = null;
             _dbContext.Appointments.Update(model);
             await _dbContext.SaveChangesAsync();
             return Ok(model);
