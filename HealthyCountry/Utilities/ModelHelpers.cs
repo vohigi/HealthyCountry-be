@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Reflection;
 
 namespace HealthyCountry.Utilities
 {
@@ -33,6 +34,22 @@ namespace HealthyCountry.Utilities
             var chain = value.Split('.');
             return string.Join('.', chain.Select(c=> c.Length == 0 ? string.Empty
                 : $"{char.ToLower(c[0])}{(c.Length > 1 ? c.Substring(1) : null)}"));
+        }
+        public static T Merge<T> (T mergeTo, T mergeFrom) where T: class
+        {
+            mergeFrom.GetType().GetProperties().ToList().ForEach(m =>
+            {
+                bool ignored = m.GetCustomAttribute<IgnoreMergeAttribute>()?.Value ?? false;
+                var asNull = m.GetCustomAttribute<MergeAsNullAttribute>()?.Value ?? false;
+                if (m.CanWrite && !ignored) { 
+                    var modelData = mergeFrom.GetType().GetProperty(m.Name).GetValue(mergeFrom);
+                    if (modelData != null || asNull)
+                    {
+                        m.SetValue(mergeTo, modelData);
+                    }
+                }
+            });
+            return mergeTo;
         }
     }
 }

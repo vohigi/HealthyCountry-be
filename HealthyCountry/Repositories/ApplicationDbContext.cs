@@ -143,6 +143,19 @@ namespace HealthyCountry.Repositories
                     .WithMany(p => p.AppointmentsAsPatient)
                     .HasForeignKey(d => d.PatientId)
                     .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(d => d.Reason)
+                    .WithMany(p => p.AppointmentReasons)
+                    .HasForeignKey(d => d.ReasonId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(d => d.Diagnosis)
+                    .WithMany(p => p.AppointmentDiagnosis)
+                    .HasForeignKey(d => d.DiagnosisId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(d => d.Action)
+                    .WithMany(p => p.AppointmentActions)
+                    .HasForeignKey(d => d.ActionId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                
             });
             modelBuilder.Entity<ICPC2Entity>()
                 .HasAlternateKey(d => d.TableKey);
@@ -152,6 +165,14 @@ namespace HealthyCountry.Repositories
                 .HasIndex(c => c.Name).ForMySqlIsFullText();
             //modelBuilder.Entity<ICPC2Entity>()
                 //.HasIndex(c => c.NumberOnlyCode);
+                modelBuilder.Entity<ICPC2GroupEntity>()
+                    .HasAlternateKey(d => d.TableKey);
+                modelBuilder.Entity<ICPC2GroupEntity>()
+                    .HasIndex(c => new {c.GroupId, c.ICPC2Id, c.IsActual, c.InsertDate}).IsUnique();
+                modelBuilder.Entity<ICPC2GroupEntity>()
+                    .HasOne(sc => sc.ICPC2)
+                    .WithMany(c => c.Groups)
+                    .HasForeignKey(sc => sc.ICPC2Id).OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

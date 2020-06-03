@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using MIS.Models;
 
 namespace HealthyCountry.Models
 {
     public class ICPC2Entity
     {
         [Key, Column(TypeName = "char(36)")]
-            public Guid Id { get; set; } = Guid.NewGuid();
+            public string Id { get; set; }
             /// <summary>
             /// Incremental key.
             /// </summary>
@@ -38,5 +39,9 @@ namespace HealthyCountry.Models
             public DateTime? LastUpdateDate { get; set; }
             [Required, StringLength(25)]    
             public string NumberOnlyCode { get; set; }
+            public List<ICPC2GroupEntity> Groups { get; set; } = new List<ICPC2GroupEntity>();
+            public List<Appointment> AppointmentReasons { get; set; } = new List<Appointment>();
+            public List<Appointment> AppointmentDiagnosis { get; set; } = new List<Appointment>();
+            public List<Appointment> AppointmentActions { get; set; } = new List<Appointment>();
     }
 }

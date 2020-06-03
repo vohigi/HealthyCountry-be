@@ -90,6 +90,27 @@ namespace HealthyCountry.Services
             return new ServiceResponse<User, ValidationResult>(userRequest);
         }
 
+        public async Task<ServiceResponse<User, ValidationResult>> UpdateUser(string id, User userRequest)
+        {
+            var validationResult = new ValidationResult();
+            var existingUser = _dbContext.Users.SingleOrDefault(x => x.UserId == id);
+            if (existingUser == null)
+            {
+                validationResult.Errors.Add(new ValidationFailure("",
+                    ValidationMessages.EntityNotFound));
+                return new ServiceResponse<User, ValidationResult>(validationResult,
+                    ServiceResponseStatuses.NotFound);
+            }
+
+            ModelHelpers.Merge(existingUser, userRequest);
+            existingUser.Password = string.IsNullOrEmpty(userRequest.Password)
+                ? existingUser.Password
+                : BCrypt.Net.BCrypt.HashPassword(userRequest.Password);
+            _dbContext.Users.Update(existingUser);
+            await _dbContext.SaveChangesAsync();
+            return new ServiceResponse<User, ValidationResult>(existingUser);
+        }
+
         public IEnumerable<User> GetAll()
         {
             return _dbContext.Users.Include(x => x.Organization).AsNoTracking().Where(x => x.IsActive).AsEnumerable();

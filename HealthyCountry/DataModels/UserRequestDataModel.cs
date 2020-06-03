@@ -34,9 +34,11 @@ namespace HealthyCountry.DataModels
             RuleFor(x => x.Email)
                 .NotEmpty()
                 .EmailAddress();
-            RuleFor(x => x.Password)
-                .NotEmpty()
-                .Matches(@"(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$");
+            RuleSet("register", () => {
+                RuleFor(x => x.Password)
+                    .NotEmpty()
+                    .Matches(@"(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$");
+            });
             RuleFor(x => x.Role)
                 .IsEnumName(typeof(UserRoles));
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using HealthyCountry.Utilities;
 using MIS.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -20,9 +21,11 @@ namespace HealthyCountry.Models
         public string Phone { get; set; }
         public string Email { get; set; }
         [JsonIgnore]
+        [IgnoreMerge]
         public string Password { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public UserRoles Role { get; set; }
+        [IgnoreMerge]
         public bool IsActive { get; set; }
         public string OrganizationId { get; set; }
         public Organization Organization { get; set; }

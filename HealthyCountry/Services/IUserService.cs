@@ -14,5 +14,6 @@ namespace HealthyCountry.Services
         Task<(int count, IEnumerable<User>)> GetDoctors(string search, int page, int count);
         User GetById(string userId);
         Task<ServiceResponse<User, ValidationResult>> CreateUser(User userRequest);
+        Task<ServiceResponse<User, ValidationResult>> UpdateUser(string id, User userRequest);
     }
 }
