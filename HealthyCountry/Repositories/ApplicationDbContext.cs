@@ -20,9 +20,9 @@ namespace HealthyCountry.Repositories
         public DbSet<User> Users { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
-        
+
         public DbSet<ICPC2Entity> ICPC2Codes { get; set; }
-        
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -103,42 +103,42 @@ namespace HealthyCountry.Repositories
 
             modelBuilder.Entity<Organization>().HasData(new Organization
             {
-                OrganizationId ="org_1",
+                OrganizationId = "org_1",
                 Name = "Default Organization",
                 Edrpou = "11111111",
                 Address = "London 221B Baker Street",
             });
-            
+
             modelBuilder.Entity<Appointment>(entity =>
             {
                 entity.HasKey(e => e.AppointmentId)
                     .HasName("PRIMARY");
-            
+
                 entity.ToTable("appointments");
-            
+
                 entity.HasIndex(e => e.EmployeeId)
                     .HasName("EmployeeId");
-            
+
                 entity.HasIndex(e => e.PatientId)
                     .HasName("UserId");
-            
+
                 entity.Property(e => e.AppointmentId).HasColumnType("varchar(250)");
-            
+
                 entity.Property(e => e.DateTime).HasColumnType("datetime(6)");
-            
+
                 entity.Property(e => e.EmployeeId).HasColumnType("varchar(250)");
-            
+
                 entity.Property(e => e.Status)
                     .IsRequired()
                     .HasColumnType("varchar(24)");
-            
+
                 entity.Property(e => e.PatientId).HasColumnType("varchar(250)");
-            
+
                 entity.HasOne(d => d.Employee)
                     .WithMany(p => p.AppointmentsAsDoctor)
                     .HasForeignKey(d => d.EmployeeId)
                     .OnDelete(DeleteBehavior.SetNull);
-            
+
                 entity.HasOne(d => d.Patient)
                     .WithMany(p => p.AppointmentsAsPatient)
                     .HasForeignKey(d => d.PatientId)
@@ -155,7 +155,6 @@ namespace HealthyCountry.Repositories
                     .WithMany(p => p.AppointmentActions)
                     .HasForeignKey(d => d.ActionId)
                     .OnDelete(DeleteBehavior.SetNull);
-                
             });
             modelBuilder.Entity<ICPC2Entity>()
                 .HasAlternateKey(d => d.TableKey);
@@ -163,16 +162,16 @@ namespace HealthyCountry.Repositories
                 .HasIndex(c => new {c.Code, c.Name, c.IsActual, c.InsertDate}).IsUnique();
             modelBuilder.Entity<ICPC2Entity>()
                 .HasIndex(c => c.Name).ForMySqlIsFullText();
-            //modelBuilder.Entity<ICPC2Entity>()
-                //.HasIndex(c => c.NumberOnlyCode);
-                modelBuilder.Entity<ICPC2GroupEntity>()
-                    .HasAlternateKey(d => d.TableKey);
-                modelBuilder.Entity<ICPC2GroupEntity>()
-                    .HasIndex(c => new {c.GroupId, c.ICPC2Id, c.IsActual, c.InsertDate}).IsUnique();
-                modelBuilder.Entity<ICPC2GroupEntity>()
-                    .HasOne(sc => sc.ICPC2)
-                    .WithMany(c => c.Groups)
-                    .HasForeignKey(sc => sc.ICPC2Id).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ICPC2Entity>()
+                .HasIndex(c => c.NumberOnlyCode);
+            modelBuilder.Entity<ICPC2GroupEntity>()
+                .HasAlternateKey(d => d.TableKey);
+            modelBuilder.Entity<ICPC2GroupEntity>()
+                .HasIndex(c => new {c.GroupId, c.ICPC2Id, c.IsActual, c.InsertDate}).IsUnique();
+            modelBuilder.Entity<ICPC2GroupEntity>()
+                .HasOne(sc => sc.ICPC2)
+                .WithMany(c => c.Groups)
+                .HasForeignKey(sc => sc.ICPC2Id).OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

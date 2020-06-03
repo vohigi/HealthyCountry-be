@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
+using HealthyCountry.Models;
 using HealthyCountry.Repositories;
 using HealthyCountry.Services;
+using HealthyCountry.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +30,7 @@ namespace HealthyCountry.Controllers
             _mapper = mapper;
             _dbContext = dbContext;
         }
+
         [HttpGet("{doctorId}")]
         public async Task<IActionResult> GetAsync([FromRoute] string doctorId)
         {
@@ -96,17 +100,79 @@ namespace HealthyCountry.Controllers
                 await _dbContext.SaveChangesAsync();
             }
 
-            var appointmentsCurrent = _dbContext.Appointments.AsNoTracking().Where(x => x.EmployeeId == doctorId && x.DateTime.Date >= dt.Date)
+            var appointmentsCurrent = _dbContext.Appointments.AsNoTracking()
+                .Where(x => x.EmployeeId == doctorId && x.DateTime.Date >= dt.Date)
                 .OrderBy(x => x.DateTime);
             return Ok(appointmentsCurrent.ToList());
         }
+
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody]Appointment model)
+        public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody] Appointment model)
         {
             model.AppointmentId = id;
             _dbContext.Appointments.Update(model);
             await _dbContext.SaveChangesAsync();
             return Ok(model);
+        }
+
+        [HttpGet("icpc2")]
+        public async Task<IActionResult> GetAsync(
+            [FromQuery(Name = "search")] string searchRequest,
+            [FromQuery(Name = "ids")] string idsRequest,
+            [FromQuery] ICPC2Groups? groupId,
+            [FromQuery] Guid? icd10Id,
+            [FromQuery] bool? isActive,
+            [FromQuery] int page = 1,
+            [FromQuery] int? limit = 30)
+        {
+            var ids = new HashSet<string>();
+            if (!string.IsNullOrEmpty(idsRequest))
+            {
+                ids = idsRequest.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .ToHashSet();
+            }
+
+            var elements = await GetCodesAsync(searchRequest, ids, groupId, icd10Id, isActive, page, limit);
+            var response = new ResponseData(elements.data);
+            response.AddPaginationData(elements.count, page, limit.Value);
+            return Ok(response);
+        }
+
+        public async Task<(int count, List<ICPC2Entity> data)> GetCodesAsync(string search,
+            HashSet<string> ids, ICPC2Groups? groupId = null, Guid? icd10Id = null, bool? isActual = null, int page = 1,
+            int? limit = null)
+        {
+            var requestBase = _dbContext.ICPC2Codes.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var fullTextQuery = "SELECT * FROM ICPC2";
+                var matchQuery = Regex.Replace(search, "[^\\w\\._* ]", " ", RegexOptions.Compiled);
+                var tokens = matchQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => t.Length > 2)
+                    .ToArray();
+                fullTextQuery = $"{fullTextQuery} where Code like ('{matchQuery}%') or NumberOnlyCode = '{matchQuery}'";
+                if (tokens.Any())
+                    fullTextQuery += $" OR MATCH (name) AGAINST ('+{string.Join("* +", tokens)}*' in boolean mode)";
+                requestBase = _dbContext.ICPC2Codes.FromSqlRaw(fullTextQuery);
+            }
+
+            var request = requestBase
+                .Include(i => i.Groups)
+                .AsNoTracking()
+                .Where(i =>
+                    (ids.Count == 0 || ids.Contains(i.Id))
+                    && (!isActual.HasValue || i.IsActual == isActual)
+                    && (!groupId.HasValue || i.Groups.Any(g => g.GroupId == groupId.Value)))
+                .OrderBy(d => d.Code);
+
+            var counter = await request.CountAsync();
+
+            var dataFetch = await (limit.HasValue
+                ? request.Skip((page - 1) * limit.Value).Take(limit.Value)
+                : request).ToListAsync();
+
+            if (counter == 0) return (counter, dataFetch);
+            return (counter, dataFetch);
         }
     }
 }

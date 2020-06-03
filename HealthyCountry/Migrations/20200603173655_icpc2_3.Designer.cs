@@ -3,14 +3,16 @@ using System;
 using HealthyCountry.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HealthyCountry.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200603173655_icpc2_3")]
+    partial class icpc2_3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,8 +82,6 @@ namespace HealthyCountry.Migrations
 
                     b.HasIndex("Name")
                         .HasAnnotation("MySql:FullTextIndex", true);
-
-                    b.HasIndex("NumberOnlyCode");
 
                     b.HasIndex("Code", "Name", "IsActual", "InsertDate")
                         .IsUnique();
@@ -214,7 +214,7 @@ namespace HealthyCountry.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "592ec6c7-7bf0-4cb7-86e4-61b764d8f4ec",
+                            UserId = "4e30d84c-4800-4d42-8668-85935735fa00",
                             BirthDate = new DateTime(1000, 10, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FirstName = "Admin",
@@ -223,7 +223,7 @@ namespace HealthyCountry.Migrations
                             LastName = "Adminovski",
                             MiddleName = "Adminovich",
                             OrganizationId = "org_1",
-                            Password = "$2b$10$KZTDX.7OZMLCOudE55hODuNGp2un7A/M76A7WSE/EBPyhZkmp3apO",
+                            Password = "$2b$10$R5dLOb5lp0d268yr4/3hTO7Dn3xw8uIGcHpN5WRd5hci0NXkrG5L.",
                             Phone = "380505680632",
                             Role = "ADMIN",
                             TaxId = "11111111"
