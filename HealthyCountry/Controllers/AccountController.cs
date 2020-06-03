@@ -103,7 +103,7 @@ namespace HealthyCountry.Controllers
             return Ok(createUserServiceResponse.Result);
         }
 
-        [HttpGet("doctors"), Authorize(Roles = "PATIENT")]
+        [HttpGet("doctors"), Authorize(Roles = "PATIENT,ADMIN")]
         public async Task<IActionResult> GetDoctors([FromQuery] string name, [FromQuery] int page = 1,
             [FromQuery] int limit = 30)
         {

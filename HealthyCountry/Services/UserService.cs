@@ -130,7 +130,7 @@ namespace HealthyCountry.Services
 
         public IEnumerable<User> GetAll()
         {
-            return _dbContext.Users.Include(x => x.Organization).AsNoTracking().Where(x => x.IsActive).AsEnumerable();
+            return _dbContext.Users.Include(x => x.Organization).AsNoTracking().AsEnumerable();
         }
 
         public async Task<(int count, IEnumerable<User>)> GetDoctors(string search, int page, int pageSize)
@@ -149,7 +149,7 @@ namespace HealthyCountry.Services
         public User GetById(string userId)
         {
             var user = _dbContext.Users.Include(x => x.Organization).AsNoTracking()
-                .FirstOrDefault(x => x.UserId == userId && x.IsActive);
+                .FirstOrDefault(x => x.UserId == userId);
             return user;
         }
     }

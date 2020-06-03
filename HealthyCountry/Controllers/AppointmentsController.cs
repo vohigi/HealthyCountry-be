@@ -20,13 +20,13 @@ namespace HealthyCountry.Controllers
     [Route("api/appointments")]
     public class AppointmentsController : Controller
     {
-        private readonly IUserService _appointmentsService;
+        private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly ApplicationDbContext _dbContext;
 
-        public AppointmentsController(IUserService appointmentsService, IMapper mapper, ApplicationDbContext dbContext)
+        public AppointmentsController(IUserService userService, IMapper mapper, ApplicationDbContext dbContext)
         {
-            _appointmentsService = appointmentsService;
+            _userService = userService;
             _mapper = mapper;
             _dbContext = dbContext;
         }
@@ -48,10 +48,10 @@ namespace HealthyCountry.Controllers
 
             var appointments = _dbContext.Appointments.Include(x => x.Employee)
                 .Where(x => x.EmployeeId == user.UserId)
-                .OrderByDescending(x => x.DateTime);
+                .OrderByDescending(x => x.DateTime).ToList();
 
 
-            if (appointments.ToList().Count == 0)
+            if (appointments.Count == 0)
             {
                 List<Appointment> appList = new List<Appointment>()
                 {
@@ -67,10 +67,10 @@ namespace HealthyCountry.Controllers
                 await _dbContext.Appointments.AddRangeAsync(appList);
                 await _dbContext.SaveChangesAsync();
             }
-            else if ((appointments.ToList()[0].DateTime - dt).TotalDays > 0)
+            else if ((appointments[0].DateTime - dt).TotalDays > 0)
             {
-                var a = (appointments.ToList()[0].DateTime - dt).TotalDays;
-                if ((appointments.ToList()[0].DateTime - dt).TotalDays <= 1)
+                var a = (appointments[0].DateTime - dt).TotalDays;
+                if ((appointments[0].DateTime - dt).TotalDays <= 1)
                 {
                     List<Appointment> appList = new List<Appointment>()
                     {
@@ -83,7 +83,7 @@ namespace HealthyCountry.Controllers
                     await _dbContext.SaveChangesAsync();
                 }
             }
-            else if (appointments.ToList()[0].DateTime <= dt)
+            else if (appointments[0].DateTime <= dt)
             {
                 List<Appointment> appList = new List<Appointment>()
                 {
@@ -102,8 +102,21 @@ namespace HealthyCountry.Controllers
 
             var appointmentsCurrent = _dbContext.Appointments.AsNoTracking()
                 .Where(x => x.EmployeeId == doctorId && x.DateTime.Date >= dt.Date)
-                .OrderBy(x => x.DateTime);
-            return Ok(appointmentsCurrent.ToList());
+                .OrderBy(x => x.DateTime).ToList();
+            return Ok(appointmentsCurrent);
+        }
+        [HttpGet("patient/{patientId}")]
+        public IActionResult GetByPatientAsync([FromRoute] string patientId)
+        {
+            var user = _userService.GetById(patientId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            var appointments = _dbContext.Appointments.Include(x => x.Employee)
+                .Where(x => x.PatientId == user.UserId)
+                .OrderByDescending(x => x.DateTime).ToList();
+            return Ok(appointments);
         }
 
         [HttpPatch("{id}")]
