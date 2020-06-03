@@ -15,5 +15,6 @@ namespace HealthyCountry.Services
         User GetById(string userId);
         Task<ServiceResponse<User, ValidationResult>> CreateUser(User userRequest);
         Task<ServiceResponse<User, ValidationResult>> UpdateUser(string id, User userRequest);
+        Task<ServiceResponse<User, ValidationResult>> ChangeUserStatus(string id, bool status);
     }
 }

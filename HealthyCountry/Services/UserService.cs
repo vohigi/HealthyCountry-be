@@ -110,6 +110,23 @@ namespace HealthyCountry.Services
             await _dbContext.SaveChangesAsync();
             return new ServiceResponse<User, ValidationResult>(existingUser);
         }
+        public async Task<ServiceResponse<User, ValidationResult>> ChangeUserStatus(string id, bool status)
+        {
+            var validationResult = new ValidationResult();
+            var existingUser = _dbContext.Users.SingleOrDefault(x => x.UserId == id);
+            if (existingUser == null)
+            {
+                validationResult.Errors.Add(new ValidationFailure("",
+                    ValidationMessages.EntityNotFound));
+                return new ServiceResponse<User, ValidationResult>(validationResult,
+                    ServiceResponseStatuses.NotFound);
+            }
+
+            existingUser.IsActive = status;
+            _dbContext.Users.Update(existingUser);
+            await _dbContext.SaveChangesAsync();
+            return new ServiceResponse<User, ValidationResult>(existingUser);
+        }
 
         public IEnumerable<User> GetAll()
         {

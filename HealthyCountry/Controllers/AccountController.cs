@@ -87,6 +87,21 @@ namespace HealthyCountry.Controllers
 
             return Ok(createUserServiceResponse.Result);
         }
+        [HttpPut("{id}/status"),Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> UpdateUser([FromRoute]string id,[FromQuery] bool status)
+        {
+            
+            var createUserServiceResponse = await _userService.ChangeUserStatus(id, status);
+
+            if (!createUserServiceResponse.IsSuccess)
+            {
+                createUserServiceResponse.Errors.AddToModelState(ModelState, null);
+                return StatusCode(createUserServiceResponse.Status.ToHttpStatusCode(),
+                    ModelHelpers.DecorateModelState(ModelState, createUserServiceResponse.Status.GetDescription()));
+            }
+
+            return Ok(createUserServiceResponse.Result);
+        }
 
         [HttpGet("doctors"), Authorize(Roles = "PATIENT")]
         public async Task<IActionResult> GetDoctors([FromQuery] string name, [FromQuery] int page = 1,
