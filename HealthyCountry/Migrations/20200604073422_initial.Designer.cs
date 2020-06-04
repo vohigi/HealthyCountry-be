@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HealthyCountry.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200511181525_appointments")]
-    partial class appointments
+    [Migration("20200604073422_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -18,6 +18,115 @@ namespace HealthyCountry.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "3.1.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            modelBuilder.Entity("HealthyCountry.Models.ICPC2Entity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("varchar(25) CHARACTER SET utf8mb4")
+                        .HasMaxLength(25);
+
+                    b.Property<string>("Considerations")
+                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasMaxLength(2000);
+
+                    b.Property<string>("Criteria")
+                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasMaxLength(2000);
+
+                    b.Property<string>("Exclusions")
+                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasMaxLength(2000);
+
+                    b.Property<string>("Inclusions")
+                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasMaxLength(2000);
+
+                    b.Property<DateTime>("InsertDate")
+                        .HasColumnType("datetime(0)");
+
+                    b.Property<bool>("IsActual")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastUpdateDate")
+                        .HasColumnType("datetime(0)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
+                        .HasMaxLength(255);
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
+                        .HasMaxLength(2000);
+
+                    b.Property<string>("NumberOnlyCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(25) CHARACTER SET utf8mb4")
+                        .HasMaxLength(25);
+
+                    b.Property<string>("ShortName")
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
+                        .HasMaxLength(255);
+
+                    b.Property<int>("TableKey")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("TableKey");
+
+                    b.HasIndex("Name")
+                        .HasAnnotation("MySql:FullTextIndex", true);
+
+                    b.HasIndex("NumberOnlyCode");
+
+                    b.HasIndex("Code", "Name", "IsActual", "InsertDate")
+                        .IsUnique();
+
+                    b.ToTable("ICPC2Codes");
+                });
+
+            modelBuilder.Entity("HealthyCountry.Models.ICPC2GroupEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<byte>("GroupId")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<string>("ICPC2Id")
+                        .IsRequired()
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<DateTime>("InsertDate")
+                        .HasColumnType("datetime(0)");
+
+                    b.Property<bool>("IsActual")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastUpdateDate")
+                        .HasColumnType("datetime(0)");
+
+                    b.Property<int>("TableKey")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasAlternateKey("TableKey");
+
+                    b.HasIndex("ICPC2Id");
+
+                    b.HasIndex("GroupId", "ICPC2Id", "IsActual", "InsertDate")
+                        .IsUnique();
+
+                    b.ToTable("ICPC2GroupEntity");
+                });
 
             modelBuilder.Entity("HealthyCountry.Models.Organization", b =>
                 {
@@ -107,7 +216,7 @@ namespace HealthyCountry.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "a5d1bf49-a58b-46d1-a335-3982c9cb95e2",
+                            UserId = "bb9e56b6-2fe4-4e1d-b27e-229cc1a6ce77",
                             BirthDate = new DateTime(1000, 10, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FirstName = "Admin",
@@ -116,7 +225,7 @@ namespace HealthyCountry.Migrations
                             LastName = "Adminovski",
                             MiddleName = "Adminovich",
                             OrganizationId = "org_1",
-                            Password = "$2b$10$h7VILUXPCflmuxbvaEnq4Oa/BmPGk0tqEPjBCNXXjkKku6wwvirie",
+                            Password = "$2b$10$AzUz5k0q5TUhAPh.tymyAO7iaiXD8y77EM0m9Q1UNpyH1B9wNYFqS",
                             Phone = "380505680632",
                             Role = "ADMIN",
                             TaxId = "11111111"
@@ -126,17 +235,28 @@ namespace HealthyCountry.Migrations
             modelBuilder.Entity("MIS.Models.Appointment", b =>
                 {
                     b.Property<string>("AppointmentId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("varchar(250)");
+
+                    b.Property<string>("ActionId")
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DiagnosisId")
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("EmployeeId")
                         .HasColumnType("varchar(250)");
 
                     b.Property<string>("PatientId")
                         .HasColumnType("varchar(250)");
+
+                    b.Property<string>("ReasonId")
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -145,13 +265,28 @@ namespace HealthyCountry.Migrations
                     b.HasKey("AppointmentId")
                         .HasName("PRIMARY");
 
+                    b.HasIndex("ActionId");
+
+                    b.HasIndex("DiagnosisId");
+
                     b.HasIndex("EmployeeId")
                         .HasName("EmployeeId");
 
                     b.HasIndex("PatientId")
                         .HasName("UserId");
 
+                    b.HasIndex("ReasonId");
+
                     b.ToTable("appointments");
+                });
+
+            modelBuilder.Entity("HealthyCountry.Models.ICPC2GroupEntity", b =>
+                {
+                    b.HasOne("HealthyCountry.Models.ICPC2Entity", "ICPC2")
+                        .WithMany("Groups")
+                        .HasForeignKey("ICPC2Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("HealthyCountry.Models.User", b =>
@@ -163,15 +298,30 @@ namespace HealthyCountry.Migrations
 
             modelBuilder.Entity("MIS.Models.Appointment", b =>
                 {
+                    b.HasOne("HealthyCountry.Models.ICPC2Entity", "Action")
+                        .WithMany("AppointmentActions")
+                        .HasForeignKey("ActionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HealthyCountry.Models.ICPC2Entity", "Diagnosis")
+                        .WithMany("AppointmentDiagnosis")
+                        .HasForeignKey("DiagnosisId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("HealthyCountry.Models.User", "Employee")
                         .WithMany("AppointmentsAsDoctor")
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("HealthyCountry.Models.User", "Patient")
                         .WithMany("AppointmentsAsPatient")
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("HealthyCountry.Models.ICPC2Entity", "Reason")
+                        .WithMany("AppointmentReasons")
+                        .HasForeignKey("ReasonId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 #pragma warning restore 612, 618
         }

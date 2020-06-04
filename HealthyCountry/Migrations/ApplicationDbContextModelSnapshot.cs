@@ -20,7 +20,7 @@ namespace HealthyCountry.Migrations
             modelBuilder.Entity("HealthyCountry.Models.ICPC2Entity", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -92,14 +92,14 @@ namespace HealthyCountry.Migrations
             modelBuilder.Entity("HealthyCountry.Models.ICPC2GroupEntity", b =>
                 {
                     b.Property<string>("Id")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<byte>("GroupId")
                         .HasColumnType("tinyint unsigned");
 
                     b.Property<string>("ICPC2Id")
                         .IsRequired()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<DateTime>("InsertDate")
                         .HasColumnType("datetime(0)");
@@ -214,7 +214,7 @@ namespace HealthyCountry.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "592ec6c7-7bf0-4cb7-86e4-61b764d8f4ec",
+                            UserId = "bb9e56b6-2fe4-4e1d-b27e-229cc1a6ce77",
                             BirthDate = new DateTime(1000, 10, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "admin@gmail.com",
                             FirstName = "Admin",
@@ -223,7 +223,7 @@ namespace HealthyCountry.Migrations
                             LastName = "Adminovski",
                             MiddleName = "Adminovich",
                             OrganizationId = "org_1",
-                            Password = "$2b$10$KZTDX.7OZMLCOudE55hODuNGp2un7A/M76A7WSE/EBPyhZkmp3apO",
+                            Password = "$2b$10$AzUz5k0q5TUhAPh.tymyAO7iaiXD8y77EM0m9Q1UNpyH1B9wNYFqS",
                             Phone = "380505680632",
                             Role = "ADMIN",
                             TaxId = "11111111"
@@ -236,13 +236,16 @@ namespace HealthyCountry.Migrations
                         .HasColumnType("varchar(250)");
 
                     b.Property<string>("ActionId")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("varchar(36)");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("DiagnosisId")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("EmployeeId")
                         .HasColumnType("varchar(250)");
@@ -251,7 +254,7 @@ namespace HealthyCountry.Migrations
                         .HasColumnType("varchar(250)");
 
                     b.Property<string>("ReasonId")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("varchar(36)");
 
                     b.Property<string>("Status")
                         .IsRequired()

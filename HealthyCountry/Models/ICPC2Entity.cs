@@ -8,7 +8,7 @@ namespace HealthyCountry.Models
 {
     public class ICPC2Entity
     {
-        [Key, Column(TypeName = "char(36)")]
+        [Key, Column(TypeName = "varchar(36)")]
             public string Id { get; set; }
             /// <summary>
             /// Incremental key.

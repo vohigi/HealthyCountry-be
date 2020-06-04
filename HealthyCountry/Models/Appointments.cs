@@ -30,6 +30,7 @@ namespace MIS.Models
         public ICPC2Entity Reason { get; set; }
         public ICPC2Entity Action { get; set; }
         public ICPC2Entity Diagnosis { get; set; }
+        public string Comment { get; set; }
     }
 
     public enum AppointmentStatuses

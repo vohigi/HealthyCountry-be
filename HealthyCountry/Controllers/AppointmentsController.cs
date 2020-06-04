@@ -31,6 +31,13 @@ namespace HealthyCountry.Controllers
             _dbContext = dbContext;
         }
 
+        [HttpGet("{appId}/one")]
+        public async Task<IActionResult> GetOneAsync([FromRoute] string appId)
+        {
+            var result= _dbContext.Appointments.Include(x => x.Employee).Include(x => x.Action).Include(x => x.Reason)
+                .Include(x => x.Diagnosis).FirstOrDefault(x => x.AppointmentId == appId);
+            return Ok(result);
+        }
         [HttpGet("{doctorId}")]
         public async Task<IActionResult> GetAsync([FromRoute] string doctorId)
         {
@@ -126,7 +133,8 @@ namespace HealthyCountry.Controllers
             {
                 return NotFound();
             }
-            var appointments = _dbContext.Appointments.Include(x => x.Employee)
+            var appointments = _dbContext.Appointments.Include(x => x.Employee).Include(x => x.Action).Include(x => x.Reason)
+                .Include(x => x.Diagnosis)
                 .Where(x => x.PatientId == user.UserId)
                 .OrderByDescending(x => x.DateTime).ToList();
             return Ok(appointments);
@@ -140,7 +148,8 @@ namespace HealthyCountry.Controllers
                 return NotFound();
             }
 
-            var appointments = _dbContext.Appointments.Include(x => x.Employee)
+            var appointments = _dbContext.Appointments.Include(x => x.Employee).Include(x => x.Action).Include(x => x.Reason)
+                .Include(x => x.Diagnosis)
                 .Where(x => x.EmployeeId == user.UserId && x.Status != AppointmentStatuses.FREE)
                 .OrderByDescending(x => x.DateTime).ToList();
             return Ok(appointments);
@@ -155,13 +164,12 @@ namespace HealthyCountry.Controllers
             await _dbContext.SaveChangesAsync();
             return Ok(model);
         }
-
+        [AllowAnonymous]
         [HttpGet("icpc2")]
         public async Task<IActionResult> GetAsync(
             [FromQuery(Name = "search")] string searchRequest,
             [FromQuery(Name = "ids")] string idsRequest,
             [FromQuery] ICPC2Groups? groupId,
-            [FromQuery] Guid? icd10Id,
             [FromQuery] bool? isActive,
             [FromQuery] int page = 1,
             [FromQuery] int? limit = 30)
@@ -173,14 +181,14 @@ namespace HealthyCountry.Controllers
                     .ToHashSet();
             }
 
-            var elements = await GetCodesAsync(searchRequest, ids, groupId, icd10Id, isActive, page, limit);
+            var elements = await GetCodesAsync(searchRequest, ids, groupId, isActive, page, limit);
             var response = new ResponseData(elements.data);
             response.AddPaginationData(elements.count, page, limit.Value);
             return Ok(response);
         }
 
         public async Task<(int count, List<ICPC2Entity> data)> GetCodesAsync(string search,
-            HashSet<string> ids, ICPC2Groups? groupId = null, Guid? icd10Id = null, bool? isActual = null, int page = 1,
+            HashSet<string> ids, ICPC2Groups? groupId = null, bool? isActual = null, int page = 1,
             int? limit = null)
         {
             var requestBase = _dbContext.ICPC2Codes.AsQueryable();
