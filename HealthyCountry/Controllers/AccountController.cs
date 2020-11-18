@@ -18,11 +18,12 @@ namespace HealthyCountry.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
-
+        private readonly UserValidationContext _validationContext;
         public AccountController(IUserService userService, IMapper mapper)
         {
             _userService = userService;
             _mapper = mapper;
+            _validationContext = new UserValidationContext();
         }
 
         [AllowAnonymous]
@@ -45,8 +46,8 @@ namespace HealthyCountry.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRequestDataModel model)
         {
-            var validator = new UserRequestDataModelValidator();
-            var validationResult = validator.Validate(model, ruleSet: "register");
+            _validationContext.SetValidator(new RegisterUserRequestValidator());
+            var validationResult = _validationContext.Validate(model);
             if (!validationResult.IsValid)
             {
                 validationResult.AddToModelState(ModelState, null);
@@ -69,7 +70,8 @@ namespace HealthyCountry.Controllers
         [HttpPut("{id}"), Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> UpdateUser([FromRoute] string id, [FromBody] UserRequestDataModel model)
         {
-            var validationResult = await new UserRequestDataModelValidator().ValidateAsync(model);
+            _validationContext.SetValidator(new UpdateUserRequestValidator());
+            var validationResult = _validationContext.Validate(model);
             if (!validationResult.IsValid)
             {
                 validationResult.AddToModelState(ModelState, null);
