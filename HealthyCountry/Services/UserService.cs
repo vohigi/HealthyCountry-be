@@ -30,7 +30,7 @@ namespace HealthyCountry.Services
         public ServiceResponse<TokenDataModel, ValidationResult> Authenticate(string email, string password)
         {
             var validationResult = new ValidationResult();
-            var user = _dbContext.Users.Include(x=>x.Organization).SingleOrDefault(x => x.Email == email);
+            var user = _dbContext.Users.Include(x => x.Organization).SingleOrDefault(x => x.Email == email);
 
             // return null if user not found
             if (user == null)
@@ -110,6 +110,7 @@ namespace HealthyCountry.Services
             await _dbContext.SaveChangesAsync();
             return new ServiceResponse<User, ValidationResult>(existingUser);
         }
+
         public async Task<ServiceResponse<User, ValidationResult>> ChangeUserStatus(string id, bool status)
         {
             var validationResult = new ValidationResult();
@@ -133,17 +134,30 @@ namespace HealthyCountry.Services
             return _dbContext.Users.Include(x => x.Organization).AsNoTracking().AsEnumerable();
         }
 
-        public async Task<(int count, IEnumerable<User>)> GetDoctors(string search, int page, int pageSize)
+        public async Task<(int count, IEnumerable<User>)> GetDoctors(string search, int page, int pageSize, DoctorSpecializations? spec,
+            string orgId, string sort)
         {
-            var request = string.IsNullOrEmpty(search)
-                ? _dbContext.Users.Include(d => d.Organization).Where(d => d.Role == UserRoles.DOCTOR || d.Role == UserRoles.ADMIN)
-                : _dbContext.Users.Include(d => d.Organization).Where(d =>
-                    EF.Functions.Like(d.LastName, "%" + search + "%") && (d.Role == UserRoles.DOCTOR|| d.Role == UserRoles.ADMIN));
+            var request = _dbContext.Users.Include(d => d.Organization).Where(d =>
+                (string.IsNullOrEmpty(orgId) || EF.Functions.Like(d.LastName, "%" + search + "%")) &&
+                    (string.IsNullOrEmpty(orgId) || d.OrganizationId == orgId) && 
+                    (!spec.HasValue || d.Specialization == spec) && 
+                    (d.Role == UserRoles.DOCTOR || d.Role == UserRoles.ADMIN));
 
             var count = await request.CountAsync();
-            var items = await request.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-            return (count, items);
-
+            var items =  request.Skip((page - 1) * pageSize).Take(pageSize);
+            switch (sort)
+            {
+                case "lastName_asc":
+                    items = items.OrderBy(s => s.LastName);
+                    break;
+                case "lastName_desc":
+                    items = items.OrderByDescending(s => s.LastName);
+                    break;
+                default:
+                    items = items.OrderBy(s => s.LastName);
+                    break;
+            }
+            return (count, items.ToList());
         }
 
         public User GetById(string userId)

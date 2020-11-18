@@ -25,6 +25,8 @@ namespace HealthyCountry.Models
         public string Password { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public UserRoles Role { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public DoctorSpecializations Specialization { get; set; }
         [IgnoreMerge]
         public bool IsActive { get; set; }
         public string OrganizationId { get; set; }
@@ -39,5 +41,10 @@ namespace HealthyCountry.Models
         OWNER,
         PATIENT,
         ADMIN
+    }
+    public enum DoctorSpecializations
+    {
+        Therapist = 0,
+        Pediatrician = 1
     }
 };
