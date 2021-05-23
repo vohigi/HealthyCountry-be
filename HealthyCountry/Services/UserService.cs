@@ -41,7 +41,7 @@ namespace HealthyCountry.Services
                     ServiceResponseStatuses.Unauthorized);
             }
 
-
+            var a = BCrypt.Net.BCrypt.HashPassword("Sasha280920");
             if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
             {
                 validationResult.Errors.Add(new ValidationFailure("",
@@ -134,29 +134,30 @@ namespace HealthyCountry.Services
             return _dbContext.Users.Include(x => x.Organization).AsNoTracking().AsEnumerable();
         }
 
-        public async Task<(int count, IEnumerable<User>)> GetDoctors(string search, int page, int pageSize, DoctorSpecializations? spec,
+        public async Task<(int count, List<User>)> GetDoctors(string search, int page, int pageSize, DoctorSpecializations? spec,
             string orgId, string sort)
         {
             var request = _dbContext.Users.Include(d => d.Organization).Where(d =>
-                (string.IsNullOrEmpty(orgId) || EF.Functions.Like(d.LastName, "%" + search + "%")) &&
+                (string.IsNullOrEmpty(search) || EF.Functions.Like(d.LastName, "%" + search + "%")) &&
                     (string.IsNullOrEmpty(orgId) || d.OrganizationId == orgId) && 
                     (!spec.HasValue || d.Specialization == spec) && 
                     (d.Role == UserRoles.DOCTOR || d.Role == UserRoles.ADMIN));
 
             var count = await request.CountAsync();
-            var items =  request.Skip((page - 1) * pageSize).Take(pageSize);
             switch (sort)
             {
                 case "lastName_asc":
-                    items = items.OrderBy(s => s.LastName);
+                    request = request.OrderBy(s => s.LastName);
                     break;
                 case "lastName_desc":
-                    items = items.OrderByDescending(s => s.LastName);
+                    request = request.OrderByDescending(s => s.LastName);
                     break;
                 default:
-                    items = items.OrderBy(s => s.LastName);
+                    request = request.OrderBy(s => s.LastName);
                     break;
             }
+            var items =  request.Skip((page - 1) * pageSize).Take(pageSize);
+            
             return (count, items.ToList());
         }
 

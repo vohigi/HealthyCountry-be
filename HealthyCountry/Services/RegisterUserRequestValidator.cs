@@ -19,14 +19,17 @@ namespace HealthyCountry.Services
             RuleFor(x => x.FirstName)
                 .NotEmpty();
             RuleFor(x => x.LastName)
-                .NotEmpty()
-                .WithMessage("Please specify a first name");
+                .NotEmpty();
             RuleFor(x => x.Gender)
                 .NotEmpty();
             RuleFor(x => x.Email)
                 .NotEmpty()
                 .EmailAddress();
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .Matches(@"(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$");
             RuleFor(x => x.Role)
+                .NotEmpty()
                 .IsEnumName(typeof(UserRoles));
         }
     }

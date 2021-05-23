@@ -60,6 +60,7 @@ namespace HealthyCountry.Controllers
             }
             var appointments = _dbContext.Appointments.Include(x => x.Employee).Include(x => x.Action).Include(x => x.Reason)
                 .Include(x => x.Diagnosis)
+                .Include(x => x.Patient)
                 .Where(x => x.PatientId == user.UserId)
                 .OrderByDescending(x => x.DateTime).ToList();
             return Ok(appointments);
@@ -75,6 +76,7 @@ namespace HealthyCountry.Controllers
 
             var appointments = _dbContext.Appointments.Include(x => x.Employee).Include(x => x.Action).Include(x => x.Reason)
                 .Include(x => x.Diagnosis)
+                .Include(x => x.Patient)
                 .Where(x => x.EmployeeId == user.UserId && x.Status != AppointmentStatuses.FREE)
                 .OrderByDescending(x => x.DateTime).ToList();
             return Ok(appointments);
@@ -85,6 +87,7 @@ namespace HealthyCountry.Controllers
         {
             model.AppointmentId = id;
             model.Employee = null;
+            model.Patient = null;
             _dbContext.Appointments.Update(model);
             await _dbContext.SaveChangesAsync();
             return Ok(model);
@@ -120,7 +123,7 @@ namespace HealthyCountry.Controllers
 
             if (!string.IsNullOrEmpty(search))
             {
-                var fullTextQuery = "SELECT * FROM ICPC2";
+                var fullTextQuery = "SELECT * FROM ICPC2Codes";
                 var matchQuery = Regex.Replace(search, "[^\\w\\._* ]", " ", RegexOptions.Compiled);
                 var tokens = matchQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => t.Length > 2)
                     .ToArray();

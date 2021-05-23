@@ -12,7 +12,7 @@ namespace HealthyCountry.Services
         ServiceResponse<TokenDataModel, ValidationResult> Authenticate(string username, string password);
         IEnumerable<User> GetAll();
 
-        Task<(int count, IEnumerable<User>)> GetDoctors(string search, int page, int pageSize, DoctorSpecializations? spec,
+        Task<(int count, List<User>)> GetDoctors(string search, int page, int pageSize, DoctorSpecializations? spec,
             string orgId, string sort);
 
         User GetById(string userId);
