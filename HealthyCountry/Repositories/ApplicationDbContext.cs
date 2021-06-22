@@ -20,6 +20,9 @@ namespace HealthyCountry.Repositories
         public DbSet<User> Users { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
+        
+        public DbSet<AppointmentToActionLink> AppointmentsToActionLinks { get; set; }
+        public DbSet<AppointmentToReasonLink> AppointmentsToReasonLinks { get; set; }
 
         public DbSet<ICPC2Entity> ICPC2Codes { get; set; }
 
@@ -143,19 +146,35 @@ namespace HealthyCountry.Repositories
                     .WithMany(p => p.AppointmentsAsPatient)
                     .HasForeignKey(d => d.PatientId)
                     .OnDelete(DeleteBehavior.SetNull);
-                entity.HasOne(d => d.Reason)
-                    .WithMany(p => p.AppointmentReasons)
-                    .HasForeignKey(d => d.ReasonId)
-                    .OnDelete(DeleteBehavior.SetNull);
                 entity.HasOne(d => d.Diagnosis)
-                    .WithMany(p => p.AppointmentDiagnosis)
-                    .HasForeignKey(d => d.DiagnosisId)
-                    .OnDelete(DeleteBehavior.SetNull);
-                entity.HasOne(d => d.Action)
-                    .WithMany(p => p.AppointmentActions)
-                    .HasForeignKey(d => d.ActionId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .WithOne(p => p.Appointment)
+                    .HasForeignKey<Appointment>(x=>x.DiagnosisId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
             });
+
+            modelBuilder.Entity<AppointmentToActionLink>(entity =>
+            {
+                entity.HasKey(x => new {x.AppointmentId, x.CodingId});
+                entity.HasAlternateKey(x => x.Id);
+                entity.HasOne(x => x.Appointment)
+                    .WithMany(x => x.Actions)
+                    .HasForeignKey(x => x.AppointmentId);
+                entity.HasOne(x => x.Coding)
+                    .WithMany(x => x.AppointmentActions)
+                    .HasForeignKey(x => x.CodingId);
+            });
+            modelBuilder.Entity<AppointmentToReasonLink>(entity =>
+            {
+                entity.HasKey(x => new {x.AppointmentId, x.CodingId});
+                entity.HasAlternateKey(x => x.Id);
+                entity.HasOne(x => x.Appointment)
+                    .WithMany(x => x.Reasons)
+                    .HasForeignKey(x => x.AppointmentId);
+                entity.HasOne(x => x.Coding)
+                    .WithMany(x => x.AppointmentReasons)
+                    .HasForeignKey(x => x.CodingId);
+            });
+            
             modelBuilder.Entity<ICPC2Entity>()
                 .HasAlternateKey(d => d.TableKey);
             modelBuilder.Entity<ICPC2Entity>()

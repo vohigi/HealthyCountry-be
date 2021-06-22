@@ -40,8 +40,8 @@ namespace HealthyCountry.Models
             [Required, StringLength(25)]    
             public string NumberOnlyCode { get; set; }
             public List<ICPC2GroupEntity> Groups { get; set; } = new List<ICPC2GroupEntity>();
-            public List<Appointment> AppointmentReasons { get; set; } = new List<Appointment>();
-            public List<Appointment> AppointmentDiagnosis { get; set; } = new List<Appointment>();
-            public List<Appointment> AppointmentActions { get; set; } = new List<Appointment>();
+            public List<AppointmentToActionLink> AppointmentActions { get; set; } = new List<AppointmentToActionLink>();
+            public List<AppointmentToReasonLink> AppointmentReasons { get; set; } = new List<AppointmentToReasonLink>();
+            public List<DiagnosisEntity> AppointmentDiagnosis { get; set; } = new List<DiagnosisEntity>();
     }
 }

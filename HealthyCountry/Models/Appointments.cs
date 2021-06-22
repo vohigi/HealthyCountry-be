@@ -22,14 +22,13 @@ namespace MIS.Models
         public DateTime DateTime { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public AppointmentStatuses Status { get; set; }
-        public string ReasonId { get; set; }
-        public string ActionId { get; set; }
         public string DiagnosisId { get; set; }
         public User Employee { get; set; }
         public User Patient { get; set; }
-        public ICPC2Entity Reason { get; set; }
-        public ICPC2Entity Action { get; set; }
-        public ICPC2Entity Diagnosis { get; set; }
+        public List<AppointmentToReasonLink> Reasons { get; set; } = new List<AppointmentToReasonLink>();
+        public List<AppointmentToActionLink> Actions { get; set; } = new List<AppointmentToActionLink>();
+        public DiagnosisEntity Diagnosis { get; set; }
+        
         public string Comment { get; set; }
     }
 
