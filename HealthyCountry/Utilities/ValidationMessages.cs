@@ -25,5 +25,10 @@
         public const string EntityStateConflict = "Modification is forbidden due to entity state.";
         public const string ActiveDeclarationRequired = "An active declaration required.";
         public const string TypeIsNotAllowed = "It's not allowed to create an entity with the specified type.";
+        
+        public const string MaxAttachmentsCountExceeded = "Sent attachments count must be less then {ComparisonValue}";
+        public const string MaxMessagesCountExceeded = "Sent messages count must be less then {ComparisonValue}";
+        
+        public const string LocalizationComparisonAttribute = "{ComparisonValue}";
     }
 }

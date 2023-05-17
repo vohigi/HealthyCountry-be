@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HealthyCountry.Models;
 using Microsoft.EntityFrameworkCore;
-using MIS.Models;
 
 namespace HealthyCountry.Repositories
 {
@@ -16,7 +16,7 @@ namespace HealthyCountry.Repositories
             _dbContext = dbContext;
         }
 
-        public List<Appointment> GetDoctorAppointments(string doctorId)
+        public List<Appointment> GetDoctorAppointments(Guid doctorId)
         {
             return _dbContext.Appointments.Include(x => x.Employee)
                 .Where(x => x.EmployeeId == doctorId)

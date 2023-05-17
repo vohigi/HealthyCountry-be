@@ -32,7 +32,7 @@ namespace HealthyCountry.Services
                 return new ServiceResponse<Organization, ValidationResult>(validationResult,
                     ServiceResponseStatuses.Conflict);
             }
-            organizationRequest.OrganizationId = Guid.NewGuid().ToString();
+            organizationRequest.Id = Guid.NewGuid();
             organizationRequest.IsActive = true;
             await _dbContext.Organizations.AddAsync(organizationRequest);
             await _dbContext.SaveChangesAsync();
@@ -45,10 +45,10 @@ namespace HealthyCountry.Services
             return _dbContext.Organizations.AsNoTracking().Where(x => x.IsActive && EF.Functions.Like(x.Name,"%"+search+"%")).AsEnumerable();
         }
 
-        public Organization GetById(string organizationId)
+        public Organization GetById(Guid organizationId)
         {
             var user = _dbContext.Organizations.Include(x=>x.Employees).AsNoTracking()
-                .FirstOrDefault(x => x.OrganizationId == organizationId && x.IsActive);
+                .FirstOrDefault(x => x.Id == organizationId && x.IsActive);
             return user;
         }
     }

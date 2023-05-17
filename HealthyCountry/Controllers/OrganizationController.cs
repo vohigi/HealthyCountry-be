@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AutoMapper;
 using FluentValidation.AspNetCore;
 using HealthyCountry.Models;
@@ -32,7 +33,7 @@ namespace HealthyCountry.Controllers
         }
         
         [HttpGet("{id}")]
-        public IActionResult GetOrganizationAsync([FromRoute] string id)
+        public IActionResult GetOrganizationAsync([FromRoute] Guid id)
         {
             var res = _organizationService.GetById(id);
             return Ok(res);

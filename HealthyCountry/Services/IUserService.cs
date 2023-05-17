@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentValidation.Results;
 using HealthyCountry.DataModels;
@@ -13,11 +14,11 @@ namespace HealthyCountry.Services
         IEnumerable<User> GetAll();
 
         Task<(int count, List<User>)> GetDoctors(string search, int page, int pageSize, DoctorSpecializations? spec,
-            string orgId, string sort);
+            Guid? orgId, string sort);
 
-        User GetById(string userId);
+        User GetById(Guid userId);
         Task<ServiceResponse<User, ValidationResult>> CreateUser(User userRequest);
-        Task<ServiceResponse<User, ValidationResult>> UpdateUser(string id, User userRequest);
-        Task<ServiceResponse<User, ValidationResult>> ChangeUserStatus(string id, bool status);
+        Task<ServiceResponse<User, ValidationResult>> UpdateUser(Guid id, User userRequest);
+        Task<ServiceResponse<User, ValidationResult>> ChangeUserStatus(Guid id, bool status);
     }
 }

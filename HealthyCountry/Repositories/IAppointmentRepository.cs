@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using MIS.Models;
+using HealthyCountry.Models;
 
 namespace HealthyCountry.Repositories
 {
     public interface IAppointmentRepository
     {
-        List<Appointment> GetDoctorAppointments(string doctorId);
+        List<Appointment> GetDoctorAppointments(Guid doctorId);
         Task SaveAppointments(List<Appointment> appointmentsRange);
     }
 }

@@ -1,13 +1,12 @@
 ﻿using System;
-using MIS.Models;
 
 namespace HealthyCountry.Models
 {
     public class AppointmentToCodingLink
     {
         public Guid Id { get; set; }
-        public string AppointmentId { get; set; }
-        public string CodingId { get; set; }
+        public Guid AppointmentId { get; set; }
+        public Guid CodingId { get; set; }
         public ICPC2Entity Coding { get; set; }
         public Appointment Appointment { get; set; }
     }

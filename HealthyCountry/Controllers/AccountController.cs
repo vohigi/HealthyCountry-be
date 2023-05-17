@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AutoMapper;
-using FluentValidation;
 using FluentValidation.AspNetCore;
 using HealthyCountry.DataModels;
 using HealthyCountry.Models;
@@ -68,7 +68,7 @@ namespace HealthyCountry.Controllers
         }
 
         [HttpPut("{id}"), Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> UpdateUser([FromRoute] string id, [FromBody] UserRequestDataModel model)
+        public async Task<IActionResult> UpdateUser([FromRoute] Guid id, [FromBody] UserRequestDataModel model)
         {
             _validationContext.SetValidator(new UpdateUserRequestValidator());
             var validationResult = _validationContext.Validate(model);
@@ -92,7 +92,7 @@ namespace HealthyCountry.Controllers
         }
 
         [HttpPut("{id}/status"), Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> UpdateUser([FromRoute] string id, [FromQuery] bool status)
+        public async Task<IActionResult> UpdateUser([FromRoute] Guid id, [FromQuery] bool status)
         {
             var createUserServiceResponse = await _userService.ChangeUserStatus(id, status);
 
@@ -108,7 +108,7 @@ namespace HealthyCountry.Controllers
 
         [HttpGet("doctors"), Authorize(Roles = "PATIENT,ADMIN")]
         public async Task<IActionResult> GetDoctors([FromQuery] string name, [FromQuery] DoctorSpecializations? spec,
-            [FromQuery] string orgId, [FromQuery] string sort, [FromQuery] int page = 1,
+            [FromQuery] Guid? orgId, [FromQuery] string sort, [FromQuery] int page = 1,
             [FromQuery] int limit = 30)
         {
             var (count, users) = await _userService.GetDoctors(name, page, limit, spec, orgId, sort);
@@ -128,7 +128,7 @@ namespace HealthyCountry.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById([FromRoute] string id)
+        public IActionResult GetById([FromRoute] Guid id)
         {
             // only allow admins to access other user records
             // var currentUserId = User.Identity.Name;

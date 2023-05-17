@@ -4,6 +4,10 @@ using HealthyCountry.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using NpgsqlTypes;
+
+#nullable disable
 
 namespace HealthyCountry.Migrations
 {
@@ -14,19 +18,57 @@ namespace HealthyCountry.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.3")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("HealthyCountry.Models.Appointment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DiagnosisId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiagnosisId")
+                        .IsUnique();
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Appointments");
+                });
 
             modelBuilder.Entity("HealthyCountry.Models.AppointmentToActionLink", b =>
                 {
-                    b.Property<string>("AppointmentId")
-                        .HasColumnType("varchar(250)");
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("CodingId")
-                        .HasColumnType("varchar(36)");
+                    b.Property<Guid>("CodingId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("Id")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("uuid");
 
                     b.HasKey("AppointmentId", "CodingId");
 
@@ -39,14 +81,14 @@ namespace HealthyCountry.Migrations
 
             modelBuilder.Entity("HealthyCountry.Models.AppointmentToReasonLink", b =>
                 {
-                    b.Property<string>("AppointmentId")
-                        .HasColumnType("varchar(250)");
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("CodingId")
-                        .HasColumnType("varchar(36)");
+                    b.Property<Guid>("CodingId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("Id")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("uuid");
 
                     b.HasKey("AppointmentId", "CodingId");
 
@@ -59,93 +101,103 @@ namespace HealthyCountry.Migrations
 
             modelBuilder.Entity("HealthyCountry.Models.DiagnosisEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("ClinicalStatus")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    b.Property<string>("CodeId")
-                        .HasColumnType("varchar(36)");
+                    b.Property<Guid?>("CodeId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("Severity")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CodeId");
 
-                    b.ToTable("DiagnosisEntity");
+                    b.ToTable("Diagnoses");
                 });
 
             modelBuilder.Entity("HealthyCountry.Models.ICPC2Entity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(36)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("varchar(25) CHARACTER SET utf8mb4")
-                        .HasMaxLength(25);
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)");
 
                     b.Property<string>("Considerations")
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
-                        .HasMaxLength(2000);
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("Criteria")
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
-                        .HasMaxLength(2000);
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("Exclusions")
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
-                        .HasMaxLength(2000);
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("Inclusions")
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
-                        .HasMaxLength(2000);
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateTime>("InsertDate")
-                        .HasColumnType("datetime(0)");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsActual")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime?>("LastUpdateDate")
-                        .HasColumnType("datetime(0)");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("varchar(2000) CHARACTER SET utf8mb4")
-                        .HasMaxLength(2000);
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<string>("NumberOnlyCode")
                         .IsRequired()
-                        .HasColumnType("varchar(25) CHARACTER SET utf8mb4")
-                        .HasMaxLength(25);
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)");
+
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .HasColumnType("tsvector");
 
                     b.Property<string>("ShortName")
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<int>("TableKey")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TableKey"));
 
                     b.HasKey("Id");
 
                     b.HasAlternateKey("TableKey");
 
-                    b.HasIndex("Name")
-                        .HasAnnotation("MySql:FullTextIndex", true);
+                    b.HasIndex("Name");
 
                     b.HasIndex("NumberOnlyCode");
+
+                    b.HasIndex("SearchVector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
 
                     b.HasIndex("Code", "Name", "IsActual", "InsertDate")
                         .IsUnique();
@@ -155,28 +207,30 @@ namespace HealthyCountry.Migrations
 
             modelBuilder.Entity("HealthyCountry.Models.ICPC2GroupEntity", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(36)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<byte>("GroupId")
-                        .HasColumnType("tinyint unsigned");
+                        .HasColumnType("smallint");
 
-                    b.Property<string>("ICPC2Id")
-                        .IsRequired()
-                        .HasColumnType("varchar(36)");
+                    b.Property<Guid>("ICPC2Id")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("InsertDate")
-                        .HasColumnType("datetime(0)");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsActual")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime?>("LastUpdateDate")
-                        .HasColumnType("datetime(0)");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("TableKey")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TableKey"));
 
                     b.HasKey("Id");
 
@@ -192,29 +246,30 @@ namespace HealthyCountry.Migrations
 
             modelBuilder.Entity("HealthyCountry.Models.Organization", b =>
                 {
-                    b.Property<string>("OrganizationId")
-                        .HasColumnType("varchar(50)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Address")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Edrpou")
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("text");
 
-                    b.HasKey("OrganizationId");
+                    b.HasKey("Id");
 
                     b.ToTable("Organizations");
 
                     b.HasData(
                         new
                         {
-                            OrganizationId = "org_1",
+                            Id = new Guid("650d70c4-5136-4c13-9a60-aa3aebae8ea5"),
                             Address = "London 221B Baker Street",
                             Edrpou = "11111111",
                             IsActive = false,
@@ -224,55 +279,50 @@ namespace HealthyCountry.Migrations
 
             modelBuilder.Entity("HealthyCountry.Models.User", b =>
                 {
-                    b.Property<string>("UserId")
-                        .HasColumnType("varchar(50)");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("BirthDate")
-                        .HasColumnType("date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
-                        .HasColumnName("Email")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("text");
 
                     b.Property<string>("FirstName")
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Gender")
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("text");
 
                     b.Property<string>("MiddleName")
-                        .HasColumnType("varchar(30)");
+                        .HasColumnType("text");
 
-                    b.Property<string>("OrganizationId")
-                        .HasColumnType("varchar(50)");
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Password")
-                        .HasColumnName("Password")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Phone")
-                        .HasColumnName("Phone")
-                        .HasColumnType("varchar(12)");
+                        .HasColumnType("text");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnName("Role")
-                        .HasColumnType("varchar(30)");
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Specialization")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("TaxId")
-                        .HasColumnName("TaxId")
-                        .HasColumnType("varchar(10)");
+                        .HasColumnType("text");
 
-                    b.HasKey("UserId");
+                    b.HasKey("Id");
 
                     b.HasIndex("OrganizationId");
 
@@ -281,65 +331,50 @@ namespace HealthyCountry.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "d890572c-cb54-4e3f-8fdd-8f22f81812b6",
-                            BirthDate = new DateTime(1000, 10, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Id = new Guid("45497320-bf4f-4850-bb44-fa55b68d1618"),
+                            BirthDate = new DateTime(2000, 9, 28, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@gmail.com",
                             FirstName = "Admin",
                             Gender = "MALE",
                             IsActive = false,
                             LastName = "Adminovski",
                             MiddleName = "Adminovich",
-                            OrganizationId = "org_1",
-                            Password = "$2b$10$L7DMm2m2W.LpY/rU5aeqzuwARj5dZb7qJYzsTum4zim9oaHjLx0ye",
+                            OrganizationId = new Guid("650d70c4-5136-4c13-9a60-aa3aebae8ea5"),
+                            Password = "$2b$10$hTl7cXE2GTVkL3.ppn9hSOgivwKCueNoLz93pFEzqLm9yheC4OfgS",
                             Phone = "380505680632",
-                            Role = "ADMIN",
+                            Role = 3,
                             Specialization = 0,
                             TaxId = "11111111"
                         });
                 });
 
-            modelBuilder.Entity("MIS.Models.Appointment", b =>
+            modelBuilder.Entity("HealthyCountry.Models.Appointment", b =>
                 {
-                    b.Property<string>("AppointmentId")
-                        .HasColumnType("varchar(250)");
+                    b.HasOne("HealthyCountry.Models.DiagnosisEntity", "Diagnosis")
+                        .WithOne("Appointment")
+                        .HasForeignKey("HealthyCountry.Models.Appointment", "DiagnosisId");
 
-                    b.Property<string>("Comment")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                    b.HasOne("HealthyCountry.Models.User", "Employee")
+                        .WithMany("AppointmentsAsDoctor")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("datetime(6)");
+                    b.HasOne("HealthyCountry.Models.User", "Patient")
+                        .WithMany("AppointmentsAsPatient")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Property<string>("DiagnosisId")
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
+                    b.Navigation("Diagnosis");
 
-                    b.Property<string>("EmployeeId")
-                        .HasColumnType("varchar(250)");
+                    b.Navigation("Employee");
 
-                    b.Property<string>("PatientId")
-                        .HasColumnType("varchar(250)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("varchar(24)");
-
-                    b.HasKey("AppointmentId")
-                        .HasName("PRIMARY");
-
-                    b.HasIndex("DiagnosisId")
-                        .IsUnique();
-
-                    b.HasIndex("EmployeeId")
-                        .HasName("EmployeeId");
-
-                    b.HasIndex("PatientId")
-                        .HasName("UserId");
-
-                    b.ToTable("appointments");
+                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("HealthyCountry.Models.AppointmentToActionLink", b =>
                 {
-                    b.HasOne("MIS.Models.Appointment", "Appointment")
+                    b.HasOne("HealthyCountry.Models.Appointment", "Appointment")
                         .WithMany("Actions")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -350,11 +385,15 @@ namespace HealthyCountry.Migrations
                         .HasForeignKey("CodingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Coding");
                 });
 
             modelBuilder.Entity("HealthyCountry.Models.AppointmentToReasonLink", b =>
                 {
-                    b.HasOne("MIS.Models.Appointment", "Appointment")
+                    b.HasOne("HealthyCountry.Models.Appointment", "Appointment")
                         .WithMany("Reasons")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -365,6 +404,10 @@ namespace HealthyCountry.Migrations
                         .HasForeignKey("CodingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Coding");
                 });
 
             modelBuilder.Entity("HealthyCountry.Models.DiagnosisEntity", b =>
@@ -372,6 +415,8 @@ namespace HealthyCountry.Migrations
                     b.HasOne("HealthyCountry.Models.ICPC2Entity", "Code")
                         .WithMany("AppointmentDiagnosis")
                         .HasForeignKey("CodeId");
+
+                    b.Navigation("Code");
                 });
 
             modelBuilder.Entity("HealthyCountry.Models.ICPC2GroupEntity", b =>
@@ -381,6 +426,8 @@ namespace HealthyCountry.Migrations
                         .HasForeignKey("ICPC2Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ICPC2");
                 });
 
             modelBuilder.Entity("HealthyCountry.Models.User", b =>
@@ -388,23 +435,43 @@ namespace HealthyCountry.Migrations
                     b.HasOne("HealthyCountry.Models.Organization", "Organization")
                         .WithMany("Employees")
                         .HasForeignKey("OrganizationId");
+
+                    b.Navigation("Organization");
                 });
 
-            modelBuilder.Entity("MIS.Models.Appointment", b =>
+            modelBuilder.Entity("HealthyCountry.Models.Appointment", b =>
                 {
-                    b.HasOne("HealthyCountry.Models.DiagnosisEntity", "Diagnosis")
-                        .WithOne("Appointment")
-                        .HasForeignKey("MIS.Models.Appointment", "DiagnosisId");
+                    b.Navigation("Actions");
 
-                    b.HasOne("HealthyCountry.Models.User", "Employee")
-                        .WithMany("AppointmentsAsDoctor")
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    b.Navigation("Reasons");
+                });
 
-                    b.HasOne("HealthyCountry.Models.User", "Patient")
-                        .WithMany("AppointmentsAsPatient")
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity("HealthyCountry.Models.DiagnosisEntity", b =>
+                {
+                    b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("HealthyCountry.Models.ICPC2Entity", b =>
+                {
+                    b.Navigation("AppointmentActions");
+
+                    b.Navigation("AppointmentDiagnosis");
+
+                    b.Navigation("AppointmentReasons");
+
+                    b.Navigation("Groups");
+                });
+
+            modelBuilder.Entity("HealthyCountry.Models.Organization", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("HealthyCountry.Models.User", b =>
+                {
+                    b.Navigation("AppointmentsAsDoctor");
+
+                    b.Navigation("AppointmentsAsPatient");
                 });
 #pragma warning restore 612, 618
         }

@@ -14,7 +14,6 @@ using HealthyCountry.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using MIS.Models;
 using Newtonsoft.Json;
 
 namespace HealthyCountry.Controllers
@@ -40,25 +39,25 @@ namespace HealthyCountry.Controllers
         }
 
         [HttpGet("{appId}/one")]
-        public async Task<IActionResult> GetOneAsync([FromRoute] string appId)
+        public async Task<IActionResult> GetOneAsync([FromRoute] Guid appId)
         {
             var result = _dbContext.Appointments.AsNoTracking().Include(x => x.Employee).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
-                .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefault(x => x.AppointmentId == appId);
+                .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefault(x => x.Id == appId);
             return Ok(result);
         }
         [HttpGet("{doctorId}")]
         public async Task<IActionResult> GetAsync([FromRoute] string doctorId)
         {
             var user = _dbContext.Users.Include(x => x.Organization).AsNoTracking()
-                .FirstOrDefault(x => x.UserId == doctorId);
+                .FirstOrDefault(x => x.Id == Guid.Parse(doctorId));
             DateTime dt = DateTime.Now;
             var facade = _appointmentsFacade.GetFacade(_dbContext);
-            var result = await facade.GetAppointmentsAsync(user.UserId, dt);
+            var result = await facade.GetAppointmentsAsync(user.Id.ToString(), dt);
             return Ok(result);
         }
         [HttpGet("patient/{patientId}")]
-        public IActionResult GetByPatientAsync([FromRoute] string patientId)
+        public IActionResult GetByPatientAsync([FromRoute] Guid patientId)
         {
             var user = _userService.GetById(patientId);
             if (user == null)
@@ -69,12 +68,12 @@ namespace HealthyCountry.Controllers
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x=>x.Code)
                 .Include(x => x.Patient)
-                .Where(x => x.PatientId == user.UserId)
+                .Where(x => x.PatientId == user.Id)
                 .OrderByDescending(x => x.DateTime).ToList();
             return Ok(appointments);
         }
         [HttpGet("doctor/{doctorId}")]
-        public IActionResult GetByDoctorAsync([FromRoute] string doctorId)
+        public IActionResult GetByDoctorAsync([FromRoute] Guid doctorId)
         {
             var user = _userService.GetById(doctorId);
             if (user == null)
@@ -86,15 +85,15 @@ namespace HealthyCountry.Controllers
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x=>x.Code)
                 .Include(x => x.Patient)
-                .Where(x => x.EmployeeId == user.UserId && x.Status != AppointmentStatuses.FREE)
+                .Where(x => x.EmployeeId == user.Id && x.Status != AppointmentStatuses.FREE)
                 .OrderByDescending(x => x.DateTime).ToList();
             return Ok(appointments);
         }
 
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateAsync([FromRoute] string id, [FromBody] Appointment model)
+        public async Task<IActionResult> UpdateAsync([FromRoute] Guid id, [FromBody] Appointment model)
         {
-            model.AppointmentId = id;
+            model.Id = id;
             model.Employee = null;
             model.Patient = null;
             _dbContext.Appointments.Update(model);
@@ -103,23 +102,26 @@ namespace HealthyCountry.Controllers
         }
         
         [HttpPut("{id}/diagnosis")]
-        public async Task<IActionResult> UpdateDiagnosisAsync([FromRoute] string id, [FromBody] ChangeDiagnosisRequest request)
+        public async Task<IActionResult> UpdateDiagnosisAsync([FromRoute] Guid id, [FromBody] ChangeDiagnosisRequest request)
         {
-            var appointment = await _dbContext.Appointments.Where(x => x.AppointmentId == id).Include(x => x.Actions)
+            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefaultAsync();
-            var codingEntity = await _dbContext.ICPC2Codes.FirstOrDefaultAsync(x => x.Id == request.CodeId);
+            var codingEntity = await _dbContext.ICPC2Codes.FirstOrDefaultAsync(x => x.Id == Guid.Parse(request.CodeId));
             if (appointment.Diagnosis == null)
             {
-                appointment.Diagnosis = new DiagnosisEntity()
+                
+                var newDiagnosis = new DiagnosisEntity()
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = Guid.NewGuid(),
                     Code = codingEntity,
                     Severity = request.Severity,
                     Date = request.Date,
                     ClinicalStatus = request.ClinicalStatus
                 };
-                _dbContext.Appointments.Update(appointment);
+                _dbContext.Diagnoses.Add(newDiagnosis);
+                appointment.Diagnosis = newDiagnosis;
+                //_dbContext.Appointments.Update(appointment);
                 await _dbContext.SaveChangesAsync();
                 return Ok(appointment);
             }
@@ -133,12 +135,12 @@ namespace HealthyCountry.Controllers
             return Ok(appointment);
         }
         [HttpPost("{id}/reasons")]
-        public async Task<IActionResult> AddReasonAsync([FromRoute] string id, [FromBody] AddCodingLinkRequest request)
+        public async Task<IActionResult> AddReasonAsync([FromRoute] Guid id, [FromBody] AddCodingLinkRequest request)
         {
-            var appointment = await _dbContext.Appointments.Where(x => x.AppointmentId == id).Include(x => x.Actions)
+            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefaultAsync();
-            var codingEntity = await _dbContext.ICPC2Codes.FirstOrDefaultAsync(x => x.Id == request.CodeId);
+            var codingEntity = await _dbContext.ICPC2Codes.FirstOrDefaultAsync(x => x.Id == Guid.Parse(request.CodeId));
             appointment.Reasons.Add(new AppointmentToReasonLink()
             {
                 Id = Guid.NewGuid(),
@@ -149,23 +151,23 @@ namespace HealthyCountry.Controllers
             return Ok(appointment);
         }
         [HttpDelete("{id}/reasons/{reasonId}")]
-        public async Task<IActionResult> DeleteReasonAsync([FromRoute] string id, [FromRoute] string reasonId)
+        public async Task<IActionResult> DeleteReasonAsync([FromRoute] Guid id, [FromRoute] string reasonId)
         {
             var linkToDelete = await _dbContext.AppointmentsToReasonLinks.FirstOrDefaultAsync(x => x.Id == Guid.Parse(reasonId));
             _dbContext.AppointmentsToReasonLinks.Remove(linkToDelete);
             await _dbContext.SaveChangesAsync();
-            var appointment = await _dbContext.Appointments.Where(x => x.AppointmentId == id).Include(x => x.Actions)
+            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefaultAsync();
             return Ok(appointment);
         }
         [HttpPost("{id}/actions")]
-        public async Task<IActionResult> AddActionAsync([FromRoute] string id, [FromBody] AddCodingLinkRequest request)
+        public async Task<IActionResult> AddActionAsync([FromRoute] Guid id, [FromBody] AddCodingLinkRequest request)
         {
-            var appointment = await _dbContext.Appointments.Where(x => x.AppointmentId == id).Include(x => x.Actions)
+            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefaultAsync();
-            var codingEntity = await _dbContext.ICPC2Codes.FirstOrDefaultAsync(x => x.Id == request.CodeId);
+            var codingEntity = await _dbContext.ICPC2Codes.FirstOrDefaultAsync(x => x.Id == Guid.Parse(request.CodeId));
             appointment.Actions.Add(new AppointmentToActionLink()
             {
                 Id = Guid.NewGuid(),
@@ -176,21 +178,21 @@ namespace HealthyCountry.Controllers
             return Ok(appointment);
         }
         [HttpDelete("{id}/actions/{actionId}")]
-        public async Task<IActionResult> DeleteActionAsync([FromRoute] string id, [FromRoute] string actionId)
+        public async Task<IActionResult> DeleteActionAsync([FromRoute] Guid id, [FromRoute] string actionId)
         {
             var linkToDelete = await _dbContext.AppointmentsToActionLinks.FirstOrDefaultAsync(x => x.Id == Guid.Parse(actionId));
             _dbContext.AppointmentsToActionLinks.Remove(linkToDelete);
             await _dbContext.SaveChangesAsync();
-            var appointment = await _dbContext.Appointments.Where(x => x.AppointmentId == id).Include(x => x.Actions)
+            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefaultAsync();
             return Ok(appointment);
         }
         [AllowAnonymous]
         [HttpGet("{doctorId}/print")]
-        public async Task<IActionResult> PrintAsync([FromRoute] string doctorId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format)
+        public async Task<IActionResult> PrintAsync([FromRoute] Guid doctorId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate, [FromQuery] string format)
         {
-            var appointments = await _dbContext.Appointments.Where(x => x.EmployeeId == doctorId && x.Status == AppointmentStatuses.FINISHED && x.DateTime >= startDate && x.DateTime <= endDate).Include(x => x.Patient)
+            var appointments = await _dbContext.Appointments.Where(x => x.EmployeeId == doctorId && x.Status == AppointmentStatuses.FINISHED && x.DateTime >= DateTime.SpecifyKind(startDate, DateTimeKind.Utc) && x.DateTime <= DateTime.SpecifyKind(endDate, DateTimeKind.Utc)).Include(x => x.Patient)
                 .Include(x => x.Employee).ThenInclude(x => x.Organization).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x => x.Code).OrderBy(x=>x.DateTime).ToListAsync();
@@ -245,10 +247,10 @@ namespace HealthyCountry.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int? limit = 30)
         {
-            var ids = new HashSet<string>();
+            var ids = new HashSet<Guid>();
             if (!string.IsNullOrEmpty(idsRequest))
             {
-                ids = idsRequest.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                ids = idsRequest.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse)
                     .ToHashSet();
             }
 
@@ -259,119 +261,29 @@ namespace HealthyCountry.Controllers
         }
 
         public async Task<(int count, List<ICPC2Entity> data)> GetCodesAsync(string search,
-            HashSet<string> ids, ICPC2Groups? groupId = null, bool? isActual = null, int page = 1,
+            HashSet<Guid> ids, ICPC2Groups? groupId = null, bool? isActual = null, int page = 1,
             int? limit = null)
         {
-            var requestBase = _dbContext.ICPC2Codes.AsQueryable();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                var fullTextQuery = "SELECT * FROM ICPC2Codes";
-                var matchQuery = Regex.Replace(search, "[^\\w\\._* ]", " ", RegexOptions.Compiled);
-                var tokens = matchQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(t => t.Length > 2)
-                    .ToArray();
-                fullTextQuery = $"{fullTextQuery} where Code like ('{matchQuery}%') or NumberOnlyCode = '{matchQuery}'";
-                if (tokens.Any())
-                    fullTextQuery += $" OR MATCH (name) AGAINST ('+{string.Join("* +", tokens)}*' in boolean mode)";
-                requestBase = _dbContext.ICPC2Codes.FromSqlRaw(fullTextQuery);
-            }
-
-            var request = requestBase
+            var request = _dbContext.ICPC2Codes.AsNoTracking()
                 .Include(i => i.Groups)
-                .AsNoTracking()
-                .Where(i =>
-                    (ids.Count == 0 || ids.Contains(i.Id))
-                    && (!isActual.HasValue || i.IsActual == isActual)
-                    && (!groupId.HasValue || i.Groups.Any(g => g.GroupId == groupId.Value)))
-                .OrderBy(d => d.Code);
-
+                .AsSplitQuery()
+                .Where(x =>
+                    (string.IsNullOrEmpty(search)
+                     || x.NumberOnlyCode == search
+                     || EF.Functions.ILike(x.Code, $"{search}%")
+                     || x.SearchVector.Matches(EF.Functions.ToTsQuery(TsVectorHelper.ToTsQueryString(search))))
+                    && (ids.Count == 0 || ids.Contains(x.Id))
+                    && (!isActual.HasValue || x.IsActual == isActual)
+                    && (!groupId.HasValue || x.Groups.Any(g => g.GroupId == groupId.Value)))
+                .OrderBy(o => o.Code);
+            
             var counter = await request.CountAsync();
 
             var dataFetch = await (limit.HasValue
                 ? request.Skip((page - 1) * limit.Value).Take(limit.Value)
                 : request).ToListAsync();
-
-            if (counter == 0) return (counter, dataFetch);
+            
             return (counter, dataFetch);
         }
     }
 }
- // DateTime dateDefault = new DateTime(dt.Year, dt.Month, dt.Day, 0, 0, 0);
- //            DateTime[] dates = new DateTime[]
- //            {
- //                dateDefault.AddDays(1).AddHours(9),
- //                dateDefault.AddDays(1).AddHours(10),
- //                dateDefault.AddDays(1).AddHours(11),
- //                dateDefault.AddDays(1).AddHours(12),
- //            };
- //
- //            var appointments = _dbContext.Appointments.Include(x => x.Employee)
- //                .Where(x => x.EmployeeId == user.UserId)
- //                .OrderByDescending(x => x.DateTime).ToList();
- //
- //
- //            if (appointments.Count == 0)
- //            {
- //                List<Appointment> appList = new List<Appointment>()
- //                {
- //                    new Appointment(doctorId, dates[0], AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[1], AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[2], AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[3], AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[0].AddDays(1), AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[1].AddDays(1), AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[2].AddDays(1), AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[3].AddDays(1), AppointmentStatuses.FREE)
- //                };
- //                await _dbContext.Appointments.AddRangeAsync(appList);
- //                await _dbContext.SaveChangesAsync();
- //            }
- //            else if ((appointments[0].DateTime - dt).TotalDays > 0)
- //            {
- //                var a = (appointments[0].DateTime - dt).TotalDays;
- //                if ((appointments[0].DateTime - dt).TotalDays <= 1)
- //                {
- //                    List<Appointment> appList = new List<Appointment>()
- //                    {
- //                        new Appointment(doctorId, dates[0].AddDays(1), AppointmentStatuses.FREE),
- //                        new Appointment(doctorId, dates[1].AddDays(1), AppointmentStatuses.FREE),
- //                        new Appointment(doctorId, dates[2].AddDays(1), AppointmentStatuses.FREE),
- //                        new Appointment(doctorId, dates[3].AddDays(1), AppointmentStatuses.FREE)
- //                    };
- //                    await _dbContext.Appointments.AddRangeAsync(appList);
- //                    await _dbContext.SaveChangesAsync();
- //                }
- //            }
- //            else if (appointments[0].DateTime <= dt)
- //            {
- //                List<Appointment> appList = new List<Appointment>()
- //                {
- //                    new Appointment(doctorId, dates[0], AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[1], AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[2], AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[3], AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[0].AddDays(1), AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[1].AddDays(1), AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[2].AddDays(1), AppointmentStatuses.FREE),
- //                    new Appointment(doctorId, dates[3].AddDays(1), AppointmentStatuses.FREE)
- //                };
- //                await _dbContext.Appointments.AddRangeAsync(appList);
- //                await _dbContext.SaveChangesAsync();
- //            }
- //
- //            var canceled = appointments.Where(x => x.Status == AppointmentStatuses.CANCELED).ToList();
- //            foreach (var appointment in canceled)
- //            {
- //                if (!_dbContext.Appointments.Any(x => x.EmployeeId == appointment.EmployeeId && x.DateTime == appointment.DateTime &&
- //                                                     x.Status != AppointmentStatuses.CANCELED))
- //                {
- //                    await _dbContext.Appointments.AddAsync(new Appointment(appointment.EmployeeId, appointment.DateTime,
- //                        AppointmentStatuses.FREE));
- //                }
- //            }
- //            
- //            await _dbContext.SaveChangesAsync();
- //
- //            var appointmentsCurrent = _dbContext.Appointments.AsNoTracking()
- //                .Where(x => x.EmployeeId == doctorId && x.DateTime.Date >= dt.Date && x.Status!=AppointmentStatuses.CANCELED)
- //                .OrderBy(x => x.DateTime).ToList();

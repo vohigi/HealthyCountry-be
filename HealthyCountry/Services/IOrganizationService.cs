@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentValidation.Results;
 using HealthyCountry.Models;
@@ -10,6 +11,6 @@ namespace HealthyCountry.Services
     {
         Task<ServiceResponse<Organization, ValidationResult>> CreateAsync(Organization organizationRequest);
         IEnumerable<Organization> GetAll(string search = null);
-        Organization GetById(string organizationId);
+        Organization GetById(Guid organizationId);
     }
 }

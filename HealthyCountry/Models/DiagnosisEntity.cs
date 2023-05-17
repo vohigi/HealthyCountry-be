@@ -1,5 +1,4 @@
 ﻿using System;
-using MIS.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -7,7 +6,7 @@ namespace HealthyCountry.Models
 {
     public class DiagnosisEntity
     {
-        public string Id { get; set; }
+        public Guid Id { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public Severity? Severity { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
