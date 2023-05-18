@@ -41,7 +41,7 @@ namespace HealthyCountry.Controllers
         [HttpGet("{appId}/one")]
         public async Task<IActionResult> GetOneAsync([FromRoute] Guid appId)
         {
-            var result = _dbContext.Appointments.AsNoTracking().Include(x => x.Employee).Include(x => x.Actions)
+            var result = _dbContext.Appointments.AsNoTracking().Include(x => x.Patient).Include(x => x.Employee).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
                 .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefault(x => x.Id == appId);
             return Ok(result);
@@ -96,7 +96,13 @@ namespace HealthyCountry.Controllers
             model.Id = id;
             model.Employee = null;
             model.Patient = null;
-            _dbContext.Appointments.Update(model);
+
+            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).FirstOrDefaultAsync();
+            appointment.Comment = model.Comment;
+            appointment.PatientId = model.PatientId;
+            appointment.Status = model.Status;
+            
+            //_dbContext.Appointments.Update(model);
             await _dbContext.SaveChangesAsync();
             return Ok(model);
         }
@@ -123,6 +129,10 @@ namespace HealthyCountry.Controllers
                 appointment.Diagnosis = newDiagnosis;
                 //_dbContext.Appointments.Update(appointment);
                 await _dbContext.SaveChangesAsync();
+                appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Patient)
+                    .Include(x => x.Employee).Include(x => x.Actions)
+                    .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
+                    .Include(x => x.Diagnosis).ThenInclude(x => x.Code).FirstOrDefaultAsync();
                 return Ok(appointment);
             }
 
@@ -132,6 +142,10 @@ namespace HealthyCountry.Controllers
             appointment.Diagnosis.Date = request.Date;
             _dbContext.Appointments.Update(appointment);
             await _dbContext.SaveChangesAsync();
+            appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Patient)
+                .Include(x => x.Employee).Include(x => x.Actions)
+                .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
+                .Include(x => x.Diagnosis).ThenInclude(x => x.Code).FirstOrDefaultAsync();
             return Ok(appointment);
         }
         [HttpPost("{id}/reasons")]
@@ -148,6 +162,10 @@ namespace HealthyCountry.Controllers
             });
             _dbContext.Appointments.Update(appointment);
             await _dbContext.SaveChangesAsync();
+            appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Patient)
+                .Include(x => x.Employee).Include(x => x.Actions)
+                .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
+                .Include(x => x.Diagnosis).ThenInclude(x => x.Code).FirstOrDefaultAsync();
             return Ok(appointment);
         }
         [HttpDelete("{id}/reasons/{reasonId}")]
@@ -156,9 +174,11 @@ namespace HealthyCountry.Controllers
             var linkToDelete = await _dbContext.AppointmentsToReasonLinks.FirstOrDefaultAsync(x => x.Id == Guid.Parse(reasonId));
             _dbContext.AppointmentsToReasonLinks.Remove(linkToDelete);
             await _dbContext.SaveChangesAsync();
-            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Actions)
+            
+            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Patient)
+                .Include(x => x.Employee).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
-                .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefaultAsync();
+                .Include(x => x.Diagnosis).ThenInclude(x => x.Code).FirstOrDefaultAsync();
             return Ok(appointment);
         }
         [HttpPost("{id}/actions")]
@@ -175,6 +195,10 @@ namespace HealthyCountry.Controllers
             });
             _dbContext.Appointments.Update(appointment);
             await _dbContext.SaveChangesAsync();
+            appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Patient)
+                .Include(x => x.Employee).Include(x => x.Actions)
+                .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
+                .Include(x => x.Diagnosis).ThenInclude(x => x.Code).FirstOrDefaultAsync();
             return Ok(appointment);
         }
         [HttpDelete("{id}/actions/{actionId}")]
@@ -183,9 +207,10 @@ namespace HealthyCountry.Controllers
             var linkToDelete = await _dbContext.AppointmentsToActionLinks.FirstOrDefaultAsync(x => x.Id == Guid.Parse(actionId));
             _dbContext.AppointmentsToActionLinks.Remove(linkToDelete);
             await _dbContext.SaveChangesAsync();
-            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Actions)
+            var appointment = await _dbContext.Appointments.Where(x => x.Id == id).Include(x => x.Patient)
+                .Include(x => x.Employee).Include(x => x.Actions)
                 .ThenInclude(x => x.Coding).Include(x => x.Reasons).ThenInclude(x => x.Coding)
-                .Include(x => x.Diagnosis).ThenInclude(x=>x.Code).FirstOrDefaultAsync();
+                .Include(x => x.Diagnosis).ThenInclude(x => x.Code).FirstOrDefaultAsync();
             return Ok(appointment);
         }
         [AllowAnonymous]
